@@ -48,3 +48,68 @@ Thumbs.db
 *.mov
 *.wmv
 
+=======
+
+logs
+.DS_Store
+dist
+
+# Build Targets
+.prebuild
+.prebuild-go
+.prebuild-jsx
+
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
+# Folders
+_obj
+_test
+
+# Architecture specific extensions/prefixes
+[568vq].out
+
+_testmain.go
+
+*.exe
+*.test
+*.prof
+
+# Log files
+*mattermost.log
+
+# Vim temporary files
+*.swp
+
+# Default local file storage
+data/*
+api/data/*
+
+.agignore
+.ctags
+tags
+
+# Certificates
+*.pem
+*.cer
+*.p8
+*.p12
+*.key
+certs
+certs.bak
+*.env
+
+# Ignore binary
+/mattermost-push-proxy
+
+node_modules
+# Swagger output file
+index.html
+
+# Ignore config.json
+cmd/renew_apple_cert/convert_cert/config/**
+cmd/renew_apple_cert/convert_cert/config.json
+cmd/renew_apple_cert/create_csr/config/**
+cmd/renew_apple_cert/create_csr/config.json
