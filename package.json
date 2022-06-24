@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mattermost/mattermost-push-proxy.git"
+    "url": "git+https://github.com/skymailbr/proxy-push-notification.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/mattermost/mattermost-push-proxy/issues"
+    "url": "https://github.com/skymailbr/proxy-push-notification/issues"
   },
-  "homepage": "https://github.com/mattermost/mattermost-push-proxy#readme",
+  "homepage": "https://github.com/skymailbr/proxy-push-notification#readme",
   "dependencies": {
     "redoc-cli": "^0.9.9",
     "swagger-cli": "^4.0.4"

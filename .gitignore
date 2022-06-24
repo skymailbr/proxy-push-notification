@@ -26,6 +26,9 @@ dist/
 # JetBrains IDE
 .idea/
 
+# VSCode IDE
+.vscode/
+
 # Unit test reports
 TEST*.xml
 
@@ -90,6 +93,7 @@ api/data/*
 .agignore
 .ctags
 tags
+checksums.txt
 
 # Certificates
 *.pem

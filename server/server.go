@@ -18,7 +18,7 @@ import (
 	"gopkg.in/throttled/throttled.v1"
 	throttledStore "gopkg.in/throttled/throttled.v1/store"
 
-	"github.com/mattermost/mattermost-push-proxy/internal/version"
+	"github.com/skymailbr/proxy-push-notification/internal/version"
 )
 
 const (
@@ -140,7 +140,7 @@ func (s *Server) Stop() {
 }
 
 func root(w http.ResponseWriter, r *http.Request) {
-	_, _ = w.Write([]byte("<html><body>Mattermost Push Proxy</body></html>"))
+	_, _ = w.Write([]byte("<html><body>Skymail Talk Push Proxy</body></html>"))
 }
 
 func (s *Server) responseTimeMiddleware(f func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {

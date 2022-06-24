@@ -1,4 +1,4 @@
-module github.com/mattermost/mattermost-push-proxy
+module github.com/skymailbr/proxy-push-notification
 
 go 1.17
 

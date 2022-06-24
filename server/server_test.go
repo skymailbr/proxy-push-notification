@@ -13,7 +13,7 @@ import (
 )
 
 func TestBasicServer(t *testing.T) {
-	fileName := FindConfigFile("mattermost-push-proxy.json")
+	fileName := FindConfigFile("talk-push-proxy.json")
 	cfg, err := LoadConfig(fileName)
 	require.NoError(t, err)
 
@@ -71,7 +71,7 @@ func TestBasicServer(t *testing.T) {
 }
 
 func TestAndroidSend(t *testing.T) {
-	fileName := FindConfigFile("mattermost-push-proxy.json")
+	fileName := FindConfigFile("talk-push-proxy.json")
 	cfg, err := LoadConfig(fileName)
 	require.NoError(t, err)
 

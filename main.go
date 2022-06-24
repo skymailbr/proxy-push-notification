@@ -10,8 +10,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/mattermost/mattermost-push-proxy/internal/version"
-	"github.com/mattermost/mattermost-push-proxy/server"
+	"github.com/skymailbr/proxy-push-notification/internal/version"
+	"github.com/skymailbr/proxy-push-notification/server"
 )
 
 var (
@@ -20,7 +20,7 @@ var (
 )
 
 func main() {
-	flag.StringVar(&flagConfigFile, "config", "mattermost-push-proxy.json", "")
+	flag.StringVar(&flagConfigFile, "config", "talk-push-proxy.json", "")
 	flag.BoolVar(&falgVersion, "version", false, "")
 	flag.Parse()
 

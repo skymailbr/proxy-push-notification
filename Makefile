@@ -22,11 +22,11 @@ ifeq ($(DIFF), 1)
     GIT_TREESTATE = "dirty"
 endif
 
-PP_PKG=github.com/mattermost/mattermost-push-proxy/internal/version
+PP_PKG=github.com/skymailbr/proxy-push-notification/internal/version
 LDFLAGS="-X $(PP_PKG).gitVersion=$(GIT_VERSION) -X $(PP_PKG).gitCommit=$(GIT_HASH) -X $(PP_PKG).gitTreeState=$(GIT_TREESTATE) -X $(PP_PKG).buildDate=$(BUILD_DATE)"
 
 DIST_ROOT=dist
-DIST_PATH=$(DIST_ROOT)/mattermost-push-proxy
+DIST_PATH=$(DIST_ROOT)/talk-push-proxy
 
 all: dist
 
@@ -45,8 +45,8 @@ check-deps:
 
 build-release:
 	@echo Building proxy push server
-	env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN)/mattermost-push-proxy-linux-amd64 -trimpath -ldflags $(LDFLAGS) $(GOFLAGS)
-	env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN)/mattermost-push-proxy-linux-arm64 -trimpath -ldflags $(LDFLAGS) $(GOFLAGS)
+	env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN)/talk-push-proxy-linux-amd64 -trimpath -ldflags $(LDFLAGS) $(GOFLAGS)
+	env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN)/talk-push-proxy-linux-arm64 -trimpath -ldflags $(LDFLAGS) $(GOFLAGS)
 
 build-local: # build push proxy for the current arch
 	@echo Building proxy push server
@@ -66,7 +66,7 @@ package-linux-amd64:
 	@ echo Packaging push proxy for linux amd64
 
 	mkdir -p $(DIST_PATH)/bin
-	cp $(GOBIN)/mattermost-push-proxy-linux-amd64 $(DIST_PATH)/bin/mattermost-push-proxy
+	cp $(GOBIN)/talk-push-proxy-linux-amd64 $(DIST_PATH)/bin/talk-push-proxy
 
 	cp -RL config $(DIST_PATH)/config
 	touch $(DIST_PATH)/config/build.txt
@@ -78,14 +78,14 @@ package-linux-amd64:
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
 
-	tar -C dist -czf $(DIST_PATH)-linux-amd64.tar.gz mattermost-push-proxy
+	tar -C dist -czf $(DIST_PATH)-linux-amd64.tar.gz talk-push-proxy
 	rm -rf $(DIST_PATH)
 
 package-linux-arm64:
 	@ echo Packaging push proxy for linux arm64
 
 	mkdir -p $(DIST_PATH)/bin
-	cp $(GOBIN)/mattermost-push-proxy-linux-arm64 $(DIST_PATH)/bin/mattermost-push-proxy
+	cp $(GOBIN)/talk-push-proxy-linux-arm64 $(DIST_PATH)/bin/talk-push-proxy
 
 	cp -RL config $(DIST_PATH)/config
 	touch $(DIST_PATH)/config/build.txt
@@ -97,12 +97,12 @@ package-linux-arm64:
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
 
-	tar -C dist -czf $(DIST_PATH)-linux-arm64.tar.gz mattermost-push-proxy
+	tar -C dist -czf $(DIST_PATH)-linux-arm64.tar.gz talk-push-proxy
 
 package: build-release package-linux-arm64 package-linux-amd64
 	cd dist \
-	sha256sum mattermost-push-proxy-linux-amd64.tar.gz >> checksums.txt \
-	&& sha256sum mattermost-push-proxy-linux-arm64.tar.gz >> checksums.txt
+	sha256sum talk-push-proxy-linux-amd64.tar.gz >> checksums.txt \
+	&& sha256sum talk-push-proxy-linux-arm64.tar.gz >> checksums.txt
 
 package-image: build-release
 	mkdir -p $(DIST_PATH)/bin
@@ -119,7 +119,7 @@ package-image: build-release
 
 PLATFORMS ?= linux/amd64 linux/arm64
 ARCHS = $(patsubst linux/%,%,$(PLATFORMS))
-IMAGE ?= mattermost/mattermost-push-proxy
+IMAGE ?= skymailbr/proxy-push-notification
 TAG ?= $(shell git describe --tags --always --dirty)
 
 # build with buildx
