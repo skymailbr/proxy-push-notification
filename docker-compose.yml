@@ -6,8 +6,6 @@ services:
     ports:
       - '8066:8066'
     volumes:
-      - ./dist:/dist
-      - ./docker/entrypoint:/usr/local/bin/entrypoint
       - ./:/talk-push-proxy/
     networks:
       - skymail-docker
