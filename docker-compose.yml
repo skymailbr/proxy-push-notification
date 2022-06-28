@@ -1,6 +1,7 @@
 version: "3"
 services:
   push-notification-server:
+    container_name: "talk-push-proxy"
     build: docker/.
     ports:
       - '8066:8066'

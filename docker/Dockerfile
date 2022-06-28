@@ -9,12 +9,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   netcat-openbsd \
   tzdata
 
-#RUN cd /talk-push-proxy && \
-#  make build-release && \
-#  make clean
-
-ENV PUSH_PROXY=/talk-push-proxy/bin/proxy-push-notification
+RUN go install github.com/cosmtrek/air@latest
 
 EXPOSE 8066
 
-ENTRYPOINT ["/usr/local/bin/entrypoint"]
+RUN air init
+CMD air

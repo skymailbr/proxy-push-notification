@@ -12,7 +12,6 @@
 
 sudo stop matter-push-proxy
 
-
 rm -f matter-push-proxy.tar.gz
 rm -rf ~/matter-push-proxy
 
