@@ -1,0 +1,16 @@
+{
+    "name": "push-proxy-notification",
+    "dockerComposeFile": [
+        "docker-compose.yml"
+    ],
+    "workspaceFolder": "/talk-push-proxy",
+    "service": "push-notification-server",
+    "extensions": [
+        "ms-vscode-remote.remote-containers",
+        "ms-vscode-remote.vscode-remote-extensionpack",
+        "IBM.output-colorizer"
+    ],
+    "settings": {
+        "go.useLanguageServer": true
+    }
+}
