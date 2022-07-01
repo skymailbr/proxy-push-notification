@@ -1,7 +1,7 @@
 {
-  "name": "mattermost-push-proxy",
+  "name": "push-proxy-notification",
   "version": "1.0.0",
-  "description": "Repository for mattermost push proxy",
+  "description": "Repository for push proxy notification",
   "main": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

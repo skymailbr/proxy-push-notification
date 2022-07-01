@@ -7,7 +7,6 @@ import (
 	"time"
 
 	fcm "github.com/appleboy/go-fcm"
-	"github.com/kyokomi/emoji"
 )
 
 type AndroidNotificationServer struct {
@@ -38,39 +37,12 @@ func (me *AndroidNotificationServer) Initialize() bool {
 func (me *AndroidNotificationServer) SendNotification(msg *PushNotification) PushResponse {
 	pushType := msg.Type
 	data := map[string]interface{}{
-		"ack_id":         msg.AckID,
-		"type":           pushType,
-		"version":        msg.Version,
-		"channel_id":     msg.ChannelID,
-		"is_crt_enabled": msg.IsCRTEnabled,
-		"server_id":      msg.ServerID,
-	}
-
-	if msg.Badge != -1 {
-		data["badge"] = msg.Badge
-	}
-
-	if msg.RootID != "" {
-		data["root_id"] = msg.RootID
-	}
-
-	if msg.IsIDLoaded {
-		data["post_id"] = msg.PostID
-		data["message"] = msg.Message
-		data["id_loaded"] = true
-		data["sender_id"] = msg.SenderID
-		data["sender_name"] = "Someone"
-		data["team_id"] = msg.TeamID
-	} else if pushType == PushTypeMessage || pushType == PushTypeSession {
-		data["team_id"] = msg.TeamID
-		data["sender_id"] = msg.SenderID
-		data["sender_name"] = msg.SenderName
-		data["message"] = emoji.Sprint(msg.Message)
-		data["channel_name"] = msg.ChannelName
-		data["post_id"] = msg.PostID
-		data["override_username"] = msg.OverrideUsername
-		data["override_icon_url"] = msg.OverrideIconURL
-		data["from_webhook"] = msg.FromWebhook
+		//		"ack_id":         msg.AckID,
+		//		"type":           pushType,
+		//		"version":        msg.Version,
+		//		"channel_id":     msg.ChannelID,
+		//		"is_crt_enabled": msg.IsCRTEnabled,
+		//		"server_id":      msg.ServerID,
 	}
 
 	if me.metrics != nil {
@@ -79,7 +51,7 @@ func (me *AndroidNotificationServer) SendNotification(msg *PushNotification) Pus
 	fcmMsg := &fcm.Message{
 		To:       msg.DeviceID,
 		Data:     data,
-		Priority: "high",
+		Priority: msg.Priority,
 	}
 
 	if me.AndroidPushSettings.AndroidAPIKey != "" {
@@ -91,7 +63,7 @@ func (me *AndroidNotificationServer) SendNotification(msg *PushNotification) Pus
 			return NewErrorPushResponse(err.Error())
 		}
 
-		me.logger.Infof("Sending android push notification for device=%v type=%v ackId=%v", me.AndroidPushSettings.Type, msg.Type, msg.AckID)
+		me.logger.Infof("Sending android push notification for device=%v type=%v", me.AndroidPushSettings.Type, msg.Type)
 
 		start := time.Now()
 		resp, err := sender.SendWithRetry(fcmMsg, 2)
@@ -100,7 +72,7 @@ func (me *AndroidNotificationServer) SendNotification(msg *PushNotification) Pus
 		}
 
 		if err != nil {
-			me.logger.Errorf("Failed to send FCM push sid=%v did=%v err=%v type=%v", msg.ServerID, msg.DeviceID, err, me.AndroidPushSettings.Type)
+			me.logger.Errorf("Failed to send FCM push did=%v err=%v type=%v", msg.DeviceID, err, me.AndroidPushSettings.Type)
 			if me.metrics != nil {
 				me.metrics.incrementFailure(PushNotifyAndroid, pushType, "unknown transport error")
 			}
@@ -127,11 +99,7 @@ func (me *AndroidNotificationServer) SendNotification(msg *PushNotification) Pus
 	}
 
 	if me.metrics != nil {
-		if msg.AckID != "" {
-			me.metrics.incrementSuccessWithAck(PushNotifyAndroid, pushType)
-		} else {
-			me.metrics.incrementSuccess(PushNotifyAndroid, pushType)
-		}
+		me.metrics.incrementSuccess(PushNotifyAndroid, pushType)
 	}
 	return NewOkPushResponse()
 }

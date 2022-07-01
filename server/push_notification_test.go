@@ -9,11 +9,11 @@ import (
 )
 
 func TestPushNotification(t *testing.T) {
-	msg := PushNotification{Platform: "test"}
+	msg := PushNotification{Type: "test"}
 	json := msg.ToJson()
 	result := PushNotificationFromJson(strings.NewReader(json))
 
-	if msg.Platform != result.Platform {
+	if msg.Type != result.Type {
 		t.Fatal("Ids do not match")
 	}
 }

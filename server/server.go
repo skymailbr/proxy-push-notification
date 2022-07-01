@@ -9,7 +9,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -70,14 +69,14 @@ func (s *Server) Start() {
 	for _, settings := range s.cfg.ApplePushSettings {
 		server := NewAppleNotificationServer(settings, s.logger, m)
 		if server.Initialize() {
-			s.pushTargets[settings.Type] = server
+			s.pushTargets["apple"] = server
 		}
 	}
 
 	for _, settings := range s.cfg.AndroidPushSettings {
 		server := NewAndroidNotificationServer(settings, s.logger, m)
 		if server.Initialize() {
-			s.pushTargets[settings.Type] = server
+			s.pushTargets["android"] = server
 		}
 	}
 
@@ -96,17 +95,17 @@ func (s *Server) Start() {
 
 	router.HandleFunc("/", root).Methods("GET")
 
+	metricCompatibleSendNotificationsHandler := s.handleSendNotifications
 	metricCompatibleSendNotificationHandler := s.handleSendNotification
-	metricCompatibleAckNotificationHandler := s.handleAckNotification
 	if s.cfg.EnableMetrics {
 		metrics := NewPrometheusHandler()
 		router.Handle("/metrics", metrics).Methods("GET")
 		metricCompatibleSendNotificationHandler = s.responseTimeMiddleware(s.handleSendNotification)
-		metricCompatibleAckNotificationHandler = s.responseTimeMiddleware(s.handleAckNotification)
+		metricCompatibleSendNotificationsHandler = s.responseTimeMiddleware(s.handleSendNotifications)
 	}
 	r := router.PathPrefix("/api/v1").Subrouter()
+	r.HandleFunc("/notifications", metricCompatibleSendNotificationsHandler).Methods("POST")
 	r.HandleFunc("/send_push", metricCompatibleSendNotificationHandler).Methods("POST")
-	r.HandleFunc("/ack", metricCompatibleAckNotificationHandler).Methods("POST")
 
 	s.httpServer = &http.Server{
 		Addr:         s.cfg.ListenAddress,
@@ -153,6 +152,10 @@ func (s *Server) responseTimeMiddleware(f func(w http.ResponseWriter, r *http.Re
 	}
 }
 
+func (s *Server) handleSendNotifications(w http.ResponseWriter, r *http.Request) {
+	s.logger.Error(r.Body)
+}
+
 func (s *Server) handleSendNotification(w http.ResponseWriter, r *http.Request) {
 	msg := PushNotificationFromJson(r.Body)
 
@@ -160,17 +163,7 @@ func (s *Server) handleSendNotification(w http.ResponseWriter, r *http.Request) 
 		rMsg := "Failed to read message body"
 		s.logger.Error(rMsg)
 		resp := NewErrorPushResponse(rMsg)
-		_, _ = w.Write([]byte(resp.ToJson()))
-		if s.metrics != nil {
-			s.metrics.incrementBadRequest()
-		}
-		return
-	}
-
-	if msg.ServerID == "" {
-		rMsg := "Failed because of missing server Id"
-		s.logger.Error(rMsg)
-		resp := NewErrorPushResponse(rMsg)
+		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte(resp.ToJson()))
 		if s.metrics != nil {
 			s.metrics.incrementBadRequest()
@@ -179,9 +172,10 @@ func (s *Server) handleSendNotification(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if msg.DeviceID == "" {
-		rMsg := fmt.Sprintf("Failed because of missing device Id serverId=%v", msg.ServerID)
+		rMsg := fmt.Sprintf("Failed because of missing device Id deviceId=%v", msg.DeviceID)
 		s.logger.Error(rMsg)
 		resp := NewErrorPushResponse(rMsg)
+		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte(resp.ToJson()))
 		if s.metrics != nil {
 			s.metrics.incrementBadRequest()
@@ -189,97 +183,26 @@ func (s *Server) handleSendNotification(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if len(msg.Message) > 2047 {
-		msg.Message = msg.Message[0:2046]
-	}
+	//	if len(msg.Message) > 2047 {
+	//		msg.Message = msg.Message[0:2046]
+	//	}
 
-	// Parse the app version if available
-	index := strings.Index(msg.Platform, "-v")
-	platform := msg.Platform
-	msg.AppVersion = 1
-	if index > -1 {
-		msg.Platform = platform[:index]
-		appVersionString := platform[index+2:]
-		version, e := strconv.Atoi(appVersionString)
-		if e == nil {
-			msg.AppVersion = version
-		} else {
-			rMsg := fmt.Sprintf("Could not determine the app version in %v appVersion=%v", msg.Platform, appVersionString)
-			s.logger.Error(rMsg)
-		}
-	}
-
-	if server, ok := s.pushTargets[msg.Platform]; ok {
+	// inserir decisor para envio de notificacao para app android/apple
+	if server, ok := s.pushTargets["android"]; ok {
 		rMsg := server.SendNotification(msg)
 		_, _ = w.Write([]byte(rMsg.ToJson()))
 		return
 	} else {
-		rMsg := fmt.Sprintf("Did not send message because of missing platform property type=%v serverId=%v", msg.Platform, msg.ServerID)
+		rMsg := fmt.Sprintf("Did not send message because of missing platform property type=%v serverId=%v", "android", "")
 		s.logger.Error(rMsg)
 		resp := NewErrorPushResponse(rMsg)
+		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte(resp.ToJson()))
 		if s.metrics != nil {
 			s.metrics.incrementBadRequest()
 		}
 		return
 	}
-}
-
-func (s *Server) handleAckNotification(w http.ResponseWriter, r *http.Request) {
-	ack := PushNotificationAckFromJSON(r.Body)
-
-	if ack == nil {
-		msg := "Failed to read ack body"
-		s.logger.Error(msg)
-		resp := NewErrorPushResponse(msg)
-		_, _ = w.Write([]byte(resp.ToJson()))
-		if s.metrics != nil {
-			s.metrics.incrementBadRequest()
-		}
-		return
-	}
-
-	if ack.ID == "" {
-		msg := "Failed because of missing ack Id"
-		s.logger.Error(msg)
-		resp := NewErrorPushResponse(msg)
-		_, _ = w.Write([]byte(resp.ToJson()))
-		if s.metrics != nil {
-			s.metrics.incrementBadRequest()
-		}
-		return
-	}
-
-	if ack.Platform == "" {
-		msg := "Failed because of missing ack platform"
-		s.logger.Error(msg)
-		resp := NewErrorPushResponse(msg)
-		_, _ = w.Write([]byte(resp.ToJson()))
-		if s.metrics != nil {
-			s.metrics.incrementBadRequest()
-		}
-		return
-	}
-
-	if ack.Type == "" {
-		msg := "Failed because of missing ack type"
-		s.logger.Error(msg)
-		resp := NewErrorPushResponse(msg)
-		_, _ = w.Write([]byte(resp.ToJson()))
-		if s.metrics != nil {
-			s.metrics.incrementBadRequest()
-		}
-		return
-	}
-
-	// Increment ACK
-	s.logger.Infof("Acknowledge delivery receipt for AckId=%v", ack.ID)
-	if s.metrics != nil {
-		s.metrics.incrementDelivered(ack.Platform, ack.Type)
-	}
-
-	rMsg := NewOkPushResponse()
-	_, _ = w.Write([]byte(rMsg.ToJson()))
 }
 
 func (s *Server) getIpAddress(r *http.Request) string {

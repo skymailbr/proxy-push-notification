@@ -3,7 +3,6 @@
     "ThrottlePerSec":300,
     "ThrottleMemoryStoreSize":50000,
     "ThrottleVaryByHeader":"X-Forwarded-For",
-    "EnableMetrics": false,
     "ApplePushSettings":[
         {
             "Type":"apple",
@@ -11,26 +10,16 @@
             "ApplePushCertPrivate":"",
             "ApplePushCertPassword":"",
             "ApplePushTopic":"com.mattermost.Mattermost"
-        },
-        {
-            "Type":"apple_rn",
-            "ApplePushUseDevelopment":false,
-            "ApplePushCertPrivate":"",
-            "ApplePushCertPassword":"",
-            "ApplePushTopic":"com.mattermost.react.native"
         }
     ],
     "AndroidPushSettings":[
         {
             "Type":"android",
             "AndroidApiKey":""
-        },
-        {
-            "Type":"android_rn",
-            "AndroidApiKey":""
         }
     ],
     "EnableConsoleLog": true,
-    "EnableFileLog": false,
+    "EnableFileLog": true,
+    "EnableMetrics": true,
     "LogFileLocation": ""
 }

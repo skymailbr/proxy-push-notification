@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/kyokomi/emoji"
 	apns "github.com/sideshow/apns2"
 	"github.com/sideshow/apns2/certificate"
 	"github.com/sideshow/apns2/payload"
@@ -80,11 +79,7 @@ func (me *AppleNotificationServer) Initialize() bool {
 func (me *AppleNotificationServer) SendNotification(msg *PushNotification) PushResponse {
 
 	data := payload.NewPayload()
-	if msg.Badge == 0 && msg.Type == PushTypeClear && msg.AppVersion > 1 {
-		data.Badge(1)
-	} else if msg.Badge != -1 {
-		data.Badge(msg.Badge)
-	}
+	data.Badge(1)
 
 	notification := &apns.Notification{}
 	notification.DeviceToken = msg.DeviceID
@@ -93,105 +88,60 @@ func (me *AppleNotificationServer) SendNotification(msg *PushNotification) PushR
 	notification.Priority = apns.PriorityHigh
 
 	var pushType = msg.Type
-	if msg.IsIDLoaded {
-		data.Category(msg.Category)
-		data.Sound("default")
-		data.Custom("version", msg.Version)
-		data.Custom("id_loaded", true)
-		data.MutableContent()
-		data.AlertBody(msg.Message)
-		data.ContentAvailable()
-	} else {
-		switch msg.Type {
-		case PushTypeMessage, PushTypeSession:
+	/*	if msg.IsIDLoaded {
 			data.Category(msg.Category)
 			data.Sound("default")
 			data.Custom("version", msg.Version)
+			data.Custom("id_loaded", true)
 			data.MutableContent()
-			if msg.Type == PushTypeMessage {
-				data.ContentAvailable()
-			}
-
-			if msg.ChannelName != "" && msg.Version == "v2" {
-				data.AlertTitle(msg.ChannelName)
-				data.AlertBody(emoji.Sprint(msg.Message))
-				data.Custom("channel_name", msg.ChannelName)
-			} else {
-				data.Alert(emoji.Sprint(msg.Message))
-
-				if msg.ChannelName != "" {
-					data.Custom("channel_name", msg.ChannelName)
-				}
-			}
-		case PushTypeClear, PushTypeTest:
+			data.AlertBody(msg.Message)
 			data.ContentAvailable()
-		case PushTypeUpdateBadge:
-			// Handled by the apps, nothing else to do here
+		} else {
+			switch msg.Type {
+			case PushTypeMessage, PushTypeSession:
+				data.Category(msg.Category)
+				data.Sound("default")
+				data.Custom("version", msg.Version)
+				data.MutableContent()
+				if msg.Type == PushTypeMessage {
+					data.ContentAvailable()
+				}
+
+				if msg.ChannelName != "" && msg.Version == "v2" {
+					data.AlertTitle(msg.ChannelName)
+					data.AlertBody(emoji.Sprint(msg.Message))
+					data.Custom("channel_name", msg.ChannelName)
+				} else {
+					data.Alert(emoji.Sprint(msg.Message))
+
+					if msg.ChannelName != "" {
+						data.Custom("channel_name", msg.ChannelName)
+					}
+				}
+			case PushTypeClear, PushTypeTest:
+				data.ContentAvailable()
+			case PushTypeUpdateBadge:
+				// Handled by the apps, nothing else to do here
+			}
 		}
-	}
+	*/
 	if me.metrics != nil {
 		me.metrics.incrementNotificationTotal(PushNotifyApple, pushType)
 	}
+
 	data.Custom("type", pushType)
-	data.Custom("server_id", msg.ServerID)
-
-	if msg.AckID != "" {
-		data.Custom("ack_id", msg.AckID)
-	}
-
-	data.Custom("is_crt_enabled", msg.IsCRTEnabled)
-
-	if msg.ChannelID != "" {
-		data.Custom("channel_id", msg.ChannelID)
-
-		if msg.IsCRTEnabled && msg.RootID != "" {
-			data.ThreadID(msg.RootID)
-		} else {
-			data.ThreadID(msg.ChannelID)
-		}
-	}
-
-	if msg.TeamID != "" {
-		data.Custom("team_id", msg.TeamID)
-	}
-
-	if msg.SenderID != "" {
-		data.Custom("sender_id", msg.SenderID)
-	}
-
-	if msg.SenderName != "" {
-		data.Custom("sender_name", msg.SenderName)
-	}
-
-	if msg.PostID != "" {
-		data.Custom("post_id", msg.PostID)
-	}
-
-	if msg.RootID != "" {
-		data.Custom("root_id", msg.RootID)
-	}
-
-	if msg.OverrideUsername != "" {
-		data.Custom("override_username", msg.OverrideUsername)
-	}
-
-	if msg.OverrideIconURL != "" {
-		data.Custom("override_icon_url", msg.OverrideIconURL)
-	}
-
-	if msg.FromWebhook != "" {
-		data.Custom("from_webhook", msg.FromWebhook)
-	}
+	//	data.Custom("server_id", msg.ServerID)
+	//	data.Custom("is_crt_enabled", msg.IsCRTEnabled)
 
 	if me.AppleClient != nil {
-		me.logger.Infof("Sending apple push notification for device=%v type=%v ackId=%v", me.ApplePushSettings.Type, msg.Type, msg.AckID)
+		me.logger.Infof("Sending apple push notification for device=%v type=%v", me.ApplePushSettings.Type, msg.Type)
 		start := time.Now()
 		res, err := me.AppleClient.Push(notification)
 		if me.metrics != nil {
 			me.metrics.observerNotificationResponse(PushNotifyApple, time.Since(start).Seconds())
 		}
 		if err != nil {
-			me.logger.Errorf("Failed to send apple push sid=%v did=%v err=%v type=%v", msg.ServerID, msg.DeviceID, err, me.ApplePushSettings.Type)
+			me.logger.Errorf("Failed to send apple push did=%v err=%v type=%v", msg.DeviceID, err, me.ApplePushSettings.Type)
 			if me.metrics != nil {
 				me.metrics.incrementFailure(PushNotifyApple, pushType, "RequestError")
 			}
@@ -215,11 +165,7 @@ func (me *AppleNotificationServer) SendNotification(msg *PushNotification) PushR
 		}
 	}
 	if me.metrics != nil {
-		if msg.AckID != "" {
-			me.metrics.incrementSuccessWithAck(PushNotifyApple, pushType)
-		} else {
-			me.metrics.incrementSuccess(PushNotifyApple, pushType)
-		}
+		me.metrics.incrementSuccess(PushNotifyApple, pushType)
 	}
 	return NewOkPushResponse()
 }
