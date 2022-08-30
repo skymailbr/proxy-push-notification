@@ -7,9 +7,9 @@
         {
             "Type":"apple",
             "ApplePushUseDevelopment":false,
-            "ApplePushCertPrivate":"./config/aps_skymail_priv.pem",
-            "ApplePushCertPassword":"UKs5j4TBgav3ayLaCmpaZ_2mK9EIkcw0w8EApwN4fOwr1z2UGJsjlCO2VZ9yZi1gOff26ZcsUsQyWsm6U10mG",
-            "ApplePushTopic":"br.com.skymail.talk"
+            "ApplePushCertPrivate":"",
+            "ApplePushCertPassword":"",
+            "ApplePushTopic":"com.mattermost.Mattermost"
         }
     ],
     "AndroidPushSettings":[
